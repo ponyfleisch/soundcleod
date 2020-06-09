@@ -49,13 +49,31 @@
         "squirrel"
       ]
     },
-    "linux": {
-      "target": [
-        "AppImage"
-      ]
-    },
     "squirrelWindows": {
       "iconUrl": "https://soundcleod.com/favicon.ico"
+    },
+    "linux": {
+      "icon": "build/icon.iconset/",
+      "category": "AudioVideo",
+      "target": [
+        "AppImage",
+        "snap"
+      ]
+    },
+    "snap": {
+      "slots": [
+        "mpris"
+      ],
+      "plugs": [
+        "desktop",
+        "desktop-legacy",
+        "x11",
+        "unity7",
+        "browser-support",
+        "network",
+        "audio-playback",
+        "opengl"
+      ]
     }
   },
   "devDependencies": {

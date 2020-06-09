@@ -98,41 +98,52 @@ function buildMenu(options) {
       ]
     },
     {
+      // ignore accelerators for these items as they are handled by soundcloud itself
       label: 'Controls',
       submenu: [
         {
           label: 'Play/Pause',
           accelerator: 'Space',
-          click() {
-            events.emit('playPause')
+          click(menuItem, browserWindow, event) {
+            if (!event.triggeredByAccelerator) {
+              events.emit('playPause')
+            }
           }
         },
         {
           label: 'Like',
           accelerator: 'L',
-          click() {
-            events.emit('likeUnlike')
+          click(menuItem, browserWindow, event) {
+            if (!event.triggeredByAccelerator) {
+              events.emit('likeUnlike')
+            }
           }
         },
         {
           label: 'Repost',
           accelerator: 'R',
-          click() {
-            events.emit('repost')
+          click(menuItem, browserWindow, event) {
+            if (!event.triggeredByAccelerator) {
+              events.emit('repost')
+            }
           }
         },
         {
           label: 'Next',
           accelerator: 'Shift+Right',
-          click() {
-            events.emit('nextTrack')
+          click(menuItem, browserWindow, event) {
+            if (!event.triggeredByAccelerator) {
+              events.emit('nextTrack')
+            }
           }
         },
         {
           label: 'Previous',
           accelerator: 'Shift+Left',
-          click() {
-            events.emit('previousTrack')
+          click(menuItem, browserWindow, event) {
+            if (!event.triggeredByAccelerator) {
+              events.emit('previousTrack')
+            }
           }
         }
       ]

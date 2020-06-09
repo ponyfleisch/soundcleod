@@ -14,11 +14,13 @@ const darkMode = require('./dark-mode')
 const dockMenu = require('./dock-menu')
 const errorHandlers = require('./error-handlers')
 const mainMenu = require('./menu')
+const mpris = require('./mpris')
 const options = require('./options')
 const SoundCloud = require('./soundcloud')
 const touchBarMenu = require('./touch-bar-menu')
 const windowOpenPolicy = require('./window-open-policy')
 const windowState = require('electron-window-state')
+const path = require('path')
 
 let mainWindow = null
 let aboutWindow = null
@@ -42,13 +44,29 @@ if (userData) {
   app.setPath('userData', app.getPath('userData') + ' ' + profile)
 }
 
+if (process.platform == 'linux') {
+  // see mpris.js for details
+  app.commandLine.appendSwitch('disable-features', 'MediaSessionService')
+}
+
 let quitting = false
 
 app.on('before-quit', () => {
   quitting = true
 })
 
-app.requestSingleInstanceLock()
+if (!app.requestSingleInstanceLock()) {
+  app.quit()
+}
+
+app.on('second-instance', () => {
+  // Someone tried to run a second instance, we should focus our window.
+  if (mainWindow) {
+    if (mainWindow.isMinimized()) mainWindow.restore()
+    mainWindow.focus()
+  }
+})
+
 app.on('ready', (event, argv) => {
   if (mainWindow) {
     if (mainWindow.isMinimized()) {
@@ -94,7 +112,10 @@ app.on('ready', () => {
     webPreferences: {
       nodeIntegration: false,
       preload: `${__dirname}/preload.js`
-    }
+    },
+    icon: `${path.dirname(
+      process.execPath
+    )}/usr/share/icons/hicolor/512x512/apps/soundcleod.png`
   })
 
   const soundcloud = new SoundCloud(mainWindow)
@@ -104,6 +125,8 @@ app.on('ready', () => {
   if (process.platform == 'darwin') {
     dockMenu(soundcloud)
     touchBarMenu(mainWindow, soundcloud)
+  } else if (process.platform == 'linux') {
+    mpris(soundcloud)
   }
 
   mainWindowState.manage(mainWindow)
@@ -127,13 +150,6 @@ app.on('ready', () => {
       }
     }
   })
-
-  // Only send commands from menu accelerators when the app is not focused.
-  // This avoids double-triggering actions and triggering actions during text
-  // is entered into the search input or in other places.
-  function isNotFocused() {
-    return !mainWindow || !mainWindow.isFocused()
-  }
 
   mainWindow.on('closed', () => {
     if (process.platform !== 'darwin') {
@@ -159,37 +175,24 @@ app.on('ready', () => {
   }
 
   menu.events.on('playPause', () => {
-    if (isNotFocused()) {
-      soundcloud.playPause()
-    }
+    soundcloud.playPause()
   })
 
   menu.events.on('likeUnlike', () => {
-    if (isNotFocused()) {
-      soundcloud.likeUnlike()
-    }
+    soundcloud.likeUnlike()
   })
 
   menu.events.on('repost', () => {
-    if (isNotFocused()) {
-      soundcloud.repost()
-    }
+    soundcloud.repost()
   })
 
   menu.events.on('nextTrack', () => {
-    if (isNotFocused()) {
-      soundcloud.nextTrack()
-    }
+    soundcloud.nextTrack()
   })
 
   menu.events.on('previousTrack', () => {
-    if (isNotFocused()) {
-      soundcloud.previousTrack()
-    }
+    soundcloud.previousTrack()
   })
-
-  // The shortcuts *not* handled by SoundCloud itself
-  // don't need the isNotFocused() check to avoid double triggering
 
   menu.events.on('home', () => {
     soundcloud.goHome()
